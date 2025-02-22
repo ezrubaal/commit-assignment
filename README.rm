@@ -1,0 +1,80 @@
+For Terraform project:
+
+Prequisites:
+    Azure CLI (logged on to account)
+    Terraform
+
+Steps prior to using terraform:
+
+    Create the Resource Group for Terraform State Storage:
+        az group create --name commit-lab-tfstatestorage-rg --location "East US"
+
+    Create the Storage Account for Terraform State:
+        az storage account create \
+        --name commitlabtfbackend \
+        --resource-group commit-lab-tfstatestorage-rg \
+        --location "East US" \
+        --sku Standard_LRS \
+        --encryption-services blob
+
+    Create the Storage Container for Terraform State:
+        az storage container create \
+        --name tfstate \
+        --account-name commitlabtfbackend
+
+    Create the Azure Container Registry (ACR) in commit-lab-acr-rg:
+        az acr create \
+        --resource-group commit-lab-acr-rg \
+        --name commitlabacr \
+        --sku Basic \
+        --admin-enabled true
+
+    Verify ACR & Get Its Resource ID:
+
+        Check if the ACR exists:
+            az acr list --resource-group commit-lab-acr-rg --output table
+        Then, get the ACR ID:
+            az acr show --name commitlabacr --resource-group commit-lab-acr-rg --query "id" --output tsv
+        Copy the result and update terraform.tfvars:
+            acr_id = "/subscriptions/8ff7e3ec-8391-4fb2-8400-6f7865f36f69/resourceGroups/commit-lab-acr-rg/providers/Microsoft.ContainerRegistry/registries/commitlabacr
+
+Once these steps are complete, go to the tf folder and run:
+    terraform init
+    terraform apply -var-file="terraform.tfvars"
+
+
+For ArgoCD project:
+
+Prequisites:
+    kubectl
+    AKS cluster from Terraform project up and running
+
+Login to AKS Cluster:
+    az aks get-credentials --resource-group commit-lab-aks-rg --name commit-exam-cluster
+
+
+Steps prior to using ArgoCD:
+    Install ArgoCD on your AKS cluster using kubectl.
+        kubectl create namespace argocd
+
+    Install ArgoCD
+        kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+    Verify ArgoCD Pods
+        kubectl get pods -n argocd    
+
+    Expose the ArgoCD Server:
+        kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
+
+    Get the External IP:
+        kubectl get svc -n argocd   
+        Look for argocd-server and note the EXTERNAL-IP. This will be used to access the ArgoCD UI.
+
+    Log in to ArgoCD:
+        Get the ArgoCD Admin Password
+            kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 --decode
+        Use this password with username admin to log in via CLI:
+            argocd login <ARGOCD-EXTERNAL-IP> --username admin --password <PASSWORD>
+
+
+
