@@ -73,6 +73,9 @@ Steps prior to using ArgoCD:
     Log in to ArgoCD:
         Get the ArgoCD Admin Password
             kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 --decode
+            if not working, you can also use these commands:
+                        $encoded = kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath="{.data.password}"
+                        [Text.Encoding]::Utf8.GetString([Convert]::FromBase64String($encoded))
         Use this password with username admin to log in via CLI:
             argocd login <ARGOCD-EXTERNAL-IP> --username admin --password <PASSWORD>
 
