@@ -54,10 +54,12 @@ Login to AKS Cluster:
 
 
 Steps prior to using ArgoCD:
-    Install ArgoCD on your AKS cluster using kubectl.
+    Install ArgoCD on your AKS cluster using kubectl:
+
+    Create namespace for ArgoCD:
         kubectl create namespace argocd
 
-    Install ArgoCD
+    Install ArgoCD on AKS cluster
         kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
     Verify ArgoCD Pods
@@ -78,6 +80,21 @@ Steps prior to using ArgoCD:
                         [Text.Encoding]::Utf8.GetString([Convert]::FromBase64String($encoded))
         Use this password with username admin to log in via CLI:
             argocd login <ARGOCD-EXTERNAL-IP> --username admin --password <PASSWORD>
+
+    Apply Manifests via ArgoCD
+        From k8s-manifests folder, run: 
+            kubectl apply -f application.yaml -n argocd
+
+    Verify Deployment:
+        Check pods:
+            kubectl get pods -n default
+
+        Check service:
+            kubectl get svc -n default
+
+        Get Nginx external IP and test in a browser:
+            kubectl get svc nginx-service -n default
+
 
 
 
