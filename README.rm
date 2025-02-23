@@ -47,17 +47,17 @@ For ArgoCD project:
 
 Prequisites:
     kubectl
+    Helm
     AKS cluster from Terraform project up and running
 
 Login to AKS Cluster:
     az aks get-credentials --resource-group commit-lab-aks-rg --name commit-exam-cluster
 
-
 Steps prior to using ArgoCD:
     Install ArgoCD on your AKS cluster using kubectl:
 
-    Create namespace for ArgoCD:
-        kubectl create namespace argocd
+    Create namespace for ArgoCD and expose the ArgoCD server:
+        helm install argocd argo/argo-cd -n argocd --create-namespace -f k8s-manifests/argocd-values.yaml
 
     Install ArgoCD on AKS cluster
         kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
@@ -95,6 +95,22 @@ Steps prior to using ArgoCD:
         Get Nginx external IP and test in a browser:
             kubectl get svc nginx-service -n default
 
+For Prometheus and Alertmanager project:
+
+Prequisites:
+    Helm
+    Prometheus
+        Add the prometheus helm repo:
+            helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+            helm repo update
+        Add prometheus and alertmanager to AKS:
+            helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --create-namespace -f prometheus/values.yaml
+        Verify Helm Deployment 
+            kubectl get pods -n monitoring
+        Apply Nginx ServiceMonitor
+            kubectl apply -f prometheus/nginx-servicemonitor.yaml
+        Apply Alert for High CPU Usage
+            kubectl apply -f prometheus/nginx-alert.yaml
 
 
 
