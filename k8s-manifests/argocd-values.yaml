@@ -1,5 +1,3 @@
 server:
   service:
     type: LoadBalancer
-    annotations:
-      service.beta.kubernetes.io/azure-load-balancer-resource-group: commit-lab-aks-rg
