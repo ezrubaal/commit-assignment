@@ -1,15 +1,60 @@
-grafana:
-  service:
-    type: LoadBalancer
+# Prometheus & Alertmanager Configuration for AKS
+alertmanager:
+  enabled: true
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      receiver: "default-receiver"
+      group_by: ["alertname", "severity"]
+      repeat_interval: 1m
+    receivers:
+      - name: "default-receiver"
+        webhook_configs:
+          - url: "http://localhost:9093/api/v1/alerts"
+            send_resolved: true
+        stdout: {} # Ensures alerts are logged to the console
 
 prometheus:
+  enabled: true
+  service:
+    type: LoadBalancer
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-resource-group: commit-lab-aks-rg
   prometheusSpec:
-    serviceMonitorSelectorNilUsesHelmValues: false
-  service:
-    type: LoadBalancer
+    serviceMonitorSelector: {}
+    serviceMonitorNamespaceSelector: {}      
 
-alertmanager:
-  alertmanagerSpec:
-    replicas: 1
+grafana:
+  enabled: true
   service:
     type: LoadBalancer
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-resource-group: commit-lab-aks-rg
+
+rule_files:
+  - "/etc/prometheus/rules/*.rules"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - "alertmanager:9093"
+
+# High CPU Usage Alert for Nginx
+prometheusRule:
+  enabled: true
+  rules:
+    - alert: HighCPUUsage
+      expr: sum(rate(container_cpu_usage_seconds_total{container="nginx"}[2m])) > 0.8
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "High CPU usage detected on Nginx pod"
+        description: "CPU usage is above 80% for more than 1 minute."
+
+nodeExporter:
+  enabled: true
+kubeStateMetrics:
+  enabled: true

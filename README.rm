@@ -107,10 +107,8 @@ Prequisites:
             helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --create-namespace -f prometheus/values.yaml
         Verify Helm Deployment 
             kubectl get pods -n monitoring
-        Apply Nginx ServiceMonitor
-            kubectl apply -f prometheus/nginx-servicemonitor.yaml
-        Apply Alert for High CPU Usage
-            kubectl apply -f prometheus/nginx-alert.yaml
+        Apply Nginx monitoring
+            kubectl apply -f prometheus/nginx-monitoring.yaml            
 
 
 
